@@ -29,6 +29,40 @@
 /**
  *******************************************************************************
  *
+ * @brief Set a list of unknowns that needs to be isolated and pushed at the end
+ * of the ordering before the Schur unknowns if any.
+ *
+ * Remark: This is usually required when some unknowns are disconnected or
+ * zeroes appear on the diagonal.
+ *
+ *******************************************************************************
+ *
+ * @param[inout] pastix_data
+ *          The pastix data structure of the solver to store the list of unknowns.
+ *
+ * @param[in] n
+ *          The number of unknowns hat needs to be isolated.
+ *
+ * @param[in] list
+ *          Array of integer of size n.
+ *          The list of unknowns to isolate.
+ *
+ *******************************************************************************/
+void
+pastixIsolateUnknowns( pastix_data_t      *pastix_data,
+                       pastix_int_t        n,
+                       const pastix_int_t *list )
+{
+    if ( n > 0 ) {
+        pastix_data->zeros_n    = n;
+        pastix_data->zeros_list = (pastix_int_t*)malloc(n * sizeof(pastix_int_t));
+        memcpy( pastix_data->zeros_list, list, n * sizeof(pastix_int_t) );
+    }
+}
+
+/**
+ *******************************************************************************
+ *
  * @brief Set the list of unknowns that belongs to the schur complement.
  *
  *******************************************************************************
@@ -49,7 +83,7 @@
 void
 pastixSetSchurUnknownList( pastix_data_t      *pastix_data,
                            pastix_int_t        n,
-                           const pastix_int_t *list)
+                           const pastix_int_t *list )
 {
     if ( n > 0 ) {
         pastix_data->schur_n    = n;

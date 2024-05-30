@@ -155,6 +155,13 @@ int pastix_subtask_solve_adv( pastix_data_t *pastix_data,
                               pastix_rhs_t   b );
 
 /*
+ * Separate set of unknowns to avoid numerical errors
+ */
+void pastixIsolateUnknowns( pastix_data_t      *pastix_data,
+                            pastix_int_t        n,
+                            const pastix_int_t *list );
+
+/*
  * Schur complement manipulation routines.
  */
 void pastixSetSchurUnknownList( pastix_data_t       *pastix_data,

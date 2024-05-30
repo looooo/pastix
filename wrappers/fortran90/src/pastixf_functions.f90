@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2024-05-30
+!> @date 2024-06-06
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -747,6 +747,19 @@ subroutine pastix_subtask_solve_adv_f08(pastix_data, transA, b, info)
   if ( present(info) ) info = x_info
 
 end subroutine pastix_subtask_solve_adv_f08
+
+subroutine pastixIsolateUnknowns_f08(pastix_data, n, list)
+  use :: pastixf_interfaces, only : pastixIsolateUnknowns
+  use :: pastixf_bindings,   only : pastixIsolateUnknowns_f2c
+  use :: iso_c_binding,      only : c_loc
+  use :: pastixf_enums,      only : pastix_data_t, pastix_int_t
+  implicit none
+  type(pastix_data_t),        intent(inout), target :: pastix_data
+  integer(kind=pastix_int_t), intent(in)            :: n
+  integer(kind=pastix_int_t), intent(in),    target :: list(:)
+
+  call pastixIsolateUnknowns_f2c(c_loc(pastix_data), n, c_loc(list))
+end subroutine pastixIsolateUnknowns_f08
 
 subroutine pastixSetSchurUnknownList_f08(pastix_data, n, list)
   use :: pastixf_interfaces, only : pastixSetSchurUnknownList

@@ -12,7 +12,7 @@
  @author Mathieu Faverge
  @author Tony Delarue
  @author Selmane Lebdaoui
- @date 2024-05-30
+ @date 2024-06-06
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -296,6 +296,12 @@ def pypastix_pastix_subtask_solve_adv( pastix_data, transA, b ):
     libpastix.pastix_subtask_solve_adv.argtypes = [ c_void_p, c_int, c_void_p ]
     libpastix.pastix_subtask_solve_adv.restype = c_int
     return libpastix.pastix_subtask_solve_adv( pastix_data, transA, b )
+
+def pypastix_pastixIsolateUnknowns( pastix_data, n, list ):
+    libpastix.pastixIsolateUnknowns.argtypes = [ c_void_p, __pastix_int__,
+                                                 POINTER(__pastix_int__) ]
+    libpastix.pastixIsolateUnknowns( pastix_data, n,
+                                     list.ctypes.data_as( POINTER(__pastix_int__) ) )
 
 def pypastix_pastixSetSchurUnknownList( pastix_data, n, list ):
     libpastix.pastixSetSchurUnknownList.argtypes = [ c_void_p, __pastix_int__,

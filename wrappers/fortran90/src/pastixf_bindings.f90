@@ -10,7 +10,7 @@
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2024-05-30
+!> @date 2024-06-06
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -407,6 +407,16 @@ module pastixf_bindings
        integer(c_int),     value :: transA
        type(pastix_rhs_t), value :: b
      end function pastix_subtask_solve_adv_f2c
+
+     subroutine pastixIsolateUnknowns_f2c(pastix_data, n, list) &
+          bind(c, name='pastixIsolateUnknowns_f2c')
+       use :: iso_c_binding, only : c_ptr
+       use :: pastixf_enums, only : pastix_int_t
+       implicit none
+       type(c_ptr),                value :: pastix_data
+       integer(kind=pastix_int_t), value :: n
+       type(c_ptr),                value :: list
+     end subroutine pastixIsolateUnknowns_f2c
 
      subroutine pastixSetSchurUnknownList_f2c(pastix_data, n, list) &
           bind(c, name='pastixSetSchurUnknownList_f2c')

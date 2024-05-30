@@ -9,7 +9,7 @@
  * @version 6.3.2
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2024-05-30
+ * @date 2024-06-06
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -318,6 +318,14 @@ pastix_subtask_solve_adv_f2c( pastix_data_t *pastix_data,
                               pastix_rhs_t   b )
 {
     return pastix_subtask_solve_adv( pastix_data, transA, b );
+}
+
+void
+pastixIsolateUnknowns_f2c( pastix_data_t      *pastix_data,
+                           pastix_int_t        n,
+                           const pastix_int_t *list )
+{
+    pastixIsolateUnknowns( pastix_data, n, list );
 }
 
 void
