@@ -269,12 +269,10 @@ morse_export_imported_target(MORSE M m pastix)
 
 # PaStiX depends on LAPACKE and CBLAS
 #------------------------------------
-set( CBLAS_MT FALSE )
 find_package(CBLAS REQUIRED)
 morse_export_imported_target(MORSE CBLAS cblas pastix)
 
 ## Tests requires TMG lib to generate random matrices.
-set( LAPACKE_MT FALSE )
 if (PASTIX_LR_TESTINGS)
   find_package(LAPACKE REQUIRED
     COMPONENTS TMG)
@@ -856,6 +854,12 @@ target_include_directories( pastix PUBLIC
   $<BUILD_INTERFACE:${PASTIX_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PASTIX_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include> )
+
+if (HAVE_BLAS_SET_NUM_THREADS AND CBLAS_INCLUDE_DIRS)
+  target_include_directories( pastix PRIVATE
+    $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+    $<INSTALL_INTERFACE:${CBLAS_INCLUDE_DIRS}> )
+endif()
 
 target_link_libraries( pastix PUBLIC  SPM::spm )
 target_link_libraries( pastix PRIVATE pastix_kernels )
