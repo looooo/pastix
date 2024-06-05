@@ -42,6 +42,15 @@
 #if defined(PASTIX_WITH_STARPU)
 #include "sopalin/starpu/pastix_starpu.h"
 #endif
+#if defined(HAVE_BLAS_SET_NUM_THREADS)
+#if defined(HAVE_BLI_THREAD_SET_NUM_THREADS)
+#include <blis.h>
+#elif defined(HAVE_MKL_SET_NUM_THREADS)
+#include <mkl_service.h>
+#elif defined(HAVE_OPENBLAS_SET_NUM_THREADS)
+#include "cblas.h"
+#endif
+#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #if defined(PASTIX_OS_WINDOWS)
@@ -584,7 +593,7 @@ pastixInitParam( pastix_int_t *iparm,
  *******************************************************************************
  *
  * @param[inout] pastix
- *          The pastix datat structure to initialize.
+ *          The pastix data structure to initialize.
  *
  * @param[in] comm
  *          The MPI communicator associated to the pastix data structure
@@ -1090,4 +1099,83 @@ pastixCheckParam( const pastix_int_t *iparm,
     }
 
     return irc + drc;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Return the current number of threads used for blas calls.
+ *
+ *******************************************************************************
+ *
+ * @return The number of threads.
+ *
+ *******************************************************************************/
+int
+pastixBlasGetNumThreads(void)
+{
+#if defined(HAVE_BLI_THREAD_SET_NUM_THREADS)
+    return bli_thread_get_num_threads();
+#elif defined(HAVE_MKL_SET_NUM_THREADS)
+    return mkl_get_max_threads();
+#elif defined(HAVE_OPENBLAS_SET_NUM_THREADS)
+    return openblas_get_num_threads();
+#else
+    return 1;
+#endif
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Set the number of threads for blas calls (BLIS, MKL, OpenBLAS) and
+ * return the previous number of blas threads.
+ *
+ * @param[in] nt
+ *          Number of threads.
+ *
+ *******************************************************************************
+ *
+ * @return The previous number of blas threads.
+ *
+ *******************************************************************************/
+int
+pastixBlasSetNumThreads( int nt )
+{
+    int prevnt = pastixBlasGetNumThreads();
+#if defined(HAVE_BLI_THREAD_SET_NUM_THREADS)
+    bli_thread_set_num_threads( nt );
+#elif defined(HAVE_MKL_SET_NUM_THREADS)
+    mkl_set_num_threads( nt );
+#elif defined(HAVE_OPENBLAS_SET_NUM_THREADS)
+    openblas_set_num_threads( nt );
+#endif
+    return prevnt;
+}
+
+/**
+ *******************************************************************************
+ *
+ * @ingroup pastix_api
+ *
+ * @brief Set the number of threads for blas calls (BLIS, MKL, OpenBLAS) to 1
+ * and return the previous number of blas threads.
+ *
+ * @param[inout] pastix
+ *          The pastix data structure where the original number of threads is
+ *          saved, see blas_nt_origin, just before setting to 1.
+ *
+ *******************************************************************************
+ *
+ * @return The previous number of blas threads.
+ *
+ *******************************************************************************/
+int
+pastixBlasSetNumThreadsOne(void)
+{
+    return pastixBlasSetNumThreads( 1 );
 }

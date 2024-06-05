@@ -220,6 +220,13 @@ void pastixDumpParam ( const pastix_data_t *pastix_data );
 int  pastixCheckParam( const pastix_int_t *iparm,
                        const double       *dparm );
 
+/*
+ * Functions to handle number of Blas threads.
+ */
+int pastixBlasGetNumThreads(void);
+int pastixBlasSetNumThreads( int nt );
+int pastixBlasSetNumThreadsOne(void);
+
 END_C_DECLS
 
 #endif /* _pastix_h_ */
