@@ -66,6 +66,12 @@
 #cmakedefine HAVE_FTZ_MACROS
 #cmakedefine HAVE_DAZ_MACROS
 
+/* BLAS set_num_threads */
+#cmakedefine HAVE_BLAS_SET_NUM_THREADS
+#cmakedefine HAVE_BLI_THREAD_SET_NUM_THREADS
+#cmakedefine HAVE_MKL_SET_NUM_THREADS
+#cmakedefine HAVE_OPENBLAS_SET_NUM_THREADS
+
 /* Architecture */
 #cmakedefine PASTIX_ARCH_X86
 #cmakedefine PASTIX_ARCH_X86_64
