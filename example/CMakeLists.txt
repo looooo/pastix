@@ -42,15 +42,16 @@ set (EXAMPLES
   analyze.c
   bench_facto.c
   compress.c
+  isolate.c
   multidof.c
   personal.c
   reentrant.c
   refinement.c
   schur.c
   simple.c
+  simple_solve_and_refine.c
   simple_trans.c
   step-by-step.c
-  simple_solve_and_refine.c
   )
 
 foreach (_file ${EXAMPLES})
