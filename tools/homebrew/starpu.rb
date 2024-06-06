@@ -15,8 +15,8 @@
 class Starpu < Formula
   desc "StarPU is a task programming library for hybrid architectures"
   homepage "https://starpu.gitlabpages.inria.fr/"
-  url "https://files.inria.fr/starpu/starpu-1.4.6/starpu-1.4.6.tar.gz"
-  sha256 "579f38e150ab78c9ab299649d8649a043dbf49786e54acbf3dad90c160672cc7"
+  url "https://files.inria.fr/starpu/starpu-1.4.7/starpu-1.4.7.tar.gz"
+  sha256 "1eb3df551089153fe6e0b172ad95118434b4a81ea9eaa5a2c38725d0db53b13e"
   license "GNU GPL v2.1"
 
   depends_on "autoconf" => :build

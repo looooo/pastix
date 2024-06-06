@@ -417,6 +417,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     PASTIX_Comm     pastix_comm;
     pastix_int_t   *iparm;
     double         *dparm;
+    int             prevnt;
 
     /*
      * Check parameters
@@ -450,6 +451,14 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
     pastix_comm = pastix_data->inter_node_comm;
     iparm = pastix_data->iparm;
     dparm = pastix_data->dparm;
+
+    /*
+     * If linked to a multithreaded blas we will set number of blas threads to
+     * 1 during numerical steps. We need to save the original value to restore
+     * it because external libraries may be used in between of just after
+     * pastix calls.
+     */
+    prevnt = pastixBlasSetNumThreadsOne();
 
     /* Prepare the sopalin_data structure */
     {
@@ -570,6 +579,7 @@ pastix_subtask_sopalin( pastix_data_t *pastix_data )
         }
 #endif /* defined(PASTIX_WITH_PARSEC) && defined(PASTIX_DEBUG_PARSEC) */
     }
+    pastixBlasSetNumThreads( prevnt );
     solverBackupRestore( pastix_data->solvmatr, sbackup );
     solverBackupExit( sbackup );
 

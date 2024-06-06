@@ -580,6 +580,15 @@ void cblas_zher2k(CBLAS_LAYOUT layout, CBLAS_UPLO Uplo,
 
 void cblas_xerbla(int p, const char *rout, const char *form, ...);
 
+/* Copy part of cblas.h from openblas which concerns num. threads */
+#if defined(HAVE_OPENBLAS_SET_NUM_THREADS)
+/*Set the number of threads on runtime.*/
+void openblas_set_num_threads(int num_threads);
+
+/*Get the number of threads on runtime.*/
+int openblas_get_num_threads(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

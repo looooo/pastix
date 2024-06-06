@@ -303,6 +303,7 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
     SolverMatrix     *solvmtx;
     sopalin_data_t    sopalin_data;
     pastix_coeftype_t flttype;
+    int               prevnt;
 
     /*
      * Check parameters
@@ -340,6 +341,8 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
 
     sopalin_data.solvmtx = solvmtx;
 
+    prevnt = pastixBlasSetNumThreadsOne();
+
     switch (flttype) {
     case PastixComplex64:
     {
@@ -370,6 +373,8 @@ pastix_subtask_trsm( pastix_data_t *pastix_data,
     default:
         fprintf(stderr, "Unknown floating point arithmetic\n" );
     }
+
+    pastixBlasSetNumThreads( prevnt );
 
 #if defined(PASTIX_DEBUG_SOLVE)
     {
@@ -418,6 +423,7 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
                      pastix_rhs_t   Bp )
 {
     sopalin_data_t sopalin_data;
+    int            prevnt;
 
     /*
      * Check parameters
@@ -443,6 +449,8 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
 
     sopalin_data.solvmtx = pastix_data->solvmatr;
 
+    prevnt = pastixBlasSetNumThreadsOne();
+
     switch ( Bp->flttype ) {
     case PastixComplex64:
         sopalin_zdiag( pastix_data, &sopalin_data, Bp );
@@ -459,6 +467,8 @@ pastix_subtask_diag( pastix_data_t *pastix_data,
     default:
         fprintf(stderr, "Unknown floating point arithmetic\n" );
     }
+
+    pastixBlasSetNumThreads( prevnt );
 
     pastix_rhs_dump( pastix_data, "solve_diag", Bp );
 
