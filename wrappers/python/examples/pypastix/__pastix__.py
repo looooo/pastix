@@ -380,3 +380,18 @@ def pypastix_pastixCheckParam( iparm, dparm ):
                                        iparm.ctypes.data_as( POINTER(__pastix_int__) ),
                                        dparm.ctypes.data_as( POINTER(c_double) ) )
 
+def pypastix_pastixBlasGetNumThreads( ):
+    libpastix.pastixBlasGetNumThreads.argtypes = [ ]
+    libpastix.pastixBlasGetNumThreads.restype = c_int
+    return libpastix.pastixBlasGetNumThreads( )
+
+def pypastix_pastixBlasSetNumThreads( nt ):
+    libpastix.pastixBlasSetNumThreads.argtypes = [ c_int ]
+    libpastix.pastixBlasSetNumThreads.restype = c_int
+    return libpastix.pastixBlasSetNumThreads( nt )
+
+def pypastix_pastixBlasSetNumThreadsOne( ):
+    libpastix.pastixBlasSetNumThreadsOne.argtypes = [ ]
+    libpastix.pastixBlasSetNumThreadsOne.restype = c_int
+    return libpastix.pastixBlasSetNumThreadsOne( )
+

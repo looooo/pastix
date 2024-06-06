@@ -553,5 +553,27 @@ module pastixf_bindings
        type(c_ptr),  value :: iparm
        type(c_ptr),  value :: dparm
      end function pastixCheckParam_f2c
+
+     function pastixBlasGetNumThreads_f2c() &
+          bind(c, name='pastixBlasGetNumThreads_f2c')
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int) :: pastixBlasGetNumThreads_f2c
+     end function pastixBlasGetNumThreads_f2c
+
+     function pastixBlasSetNumThreads_f2c(nt) &
+          bind(c, name='pastixBlasSetNumThreads_f2c')
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int)        :: pastixBlasSetNumThreads_f2c
+       integer(kind=c_int), value :: nt
+     end function pastixBlasSetNumThreads_f2c
+
+     function pastixBlasSetNumThreadsOne_f2c() &
+          bind(c, name='pastixBlasSetNumThreadsOne_f2c')
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int) :: pastixBlasSetNumThreadsOne_f2c
+     end function pastixBlasSetNumThreadsOne_f2c
   end interface
 end module pastixf_bindings

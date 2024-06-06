@@ -1004,6 +1004,49 @@ subroutine pastixCheckParam_f08(iparm, dparm, info)
 
 end subroutine pastixCheckParam_f08
 
+subroutine pastixBlasGetNumThreads_f08(info)
+  use :: pastixf_interfaces, only : pastixBlasGetNumThreads
+  use :: pastixf_bindings,   only : pastixBlasGetNumThreads_f2c
+  use :: iso_c_binding,      only : c_int
+  implicit none
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixBlasGetNumThreads_f2c()
+  if ( present(info) ) info = x_info
+
+end subroutine pastixBlasGetNumThreads_f08
+
+subroutine pastixBlasSetNumThreads_f08(nt, info)
+  use :: pastixf_interfaces, only : pastixBlasSetNumThreads
+  use :: pastixf_bindings,   only : pastixBlasSetNumThreads_f2c
+  use :: iso_c_binding,      only : c_int
+  implicit none
+  integer(kind=c_int), intent(in)            :: nt
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixBlasSetNumThreads_f2c(nt)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixBlasSetNumThreads_f08
+
+subroutine pastixBlasSetNumThreadsOne_f08(info)
+  use :: pastixf_interfaces, only : pastixBlasSetNumThreadsOne
+  use :: pastixf_bindings,   only : pastixBlasSetNumThreadsOne_f2c
+  use :: iso_c_binding,      only : c_int
+  implicit none
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixBlasSetNumThreadsOne_f2c()
+  if ( present(info) ) info = x_info
+
+end subroutine pastixBlasSetNumThreadsOne_f08
+
 subroutine pastixOrderGetArray_f08( order, permtab, peritab, rangtab, treetab, sndetab )
   use :: pastixf_interfaces, only : pastixOrderGetArray
   use :: iso_c_binding,      only : c_f_pointer

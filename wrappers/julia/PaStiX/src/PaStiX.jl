@@ -226,4 +226,16 @@ end
     @cextern pastixCheckParam( iparm::Ptr{Pastix_int_t}, dparm::Ptr{Cdouble} )::Cint
 end
 
+@cbindings libpastix begin
+    @cextern pastixBlasGetNumThreads(  )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixBlasSetNumThreads( nt::Cint )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixBlasSetNumThreadsOne(  )::Cint
+end
+
 end #module

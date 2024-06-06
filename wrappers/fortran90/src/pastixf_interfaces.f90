@@ -619,6 +619,31 @@ module pastixf_interfaces
      end subroutine pastixCheckParam_f08
   end interface pastixCheckParam
 
+  interface pastixBlasGetNumThreads
+     subroutine pastixBlasGetNumThreads_f08(info)
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixBlasGetNumThreads_f08
+  end interface pastixBlasGetNumThreads
+
+  interface pastixBlasSetNumThreads
+     subroutine pastixBlasSetNumThreads_f08(nt, info)
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int), intent(in)            :: nt
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixBlasSetNumThreads_f08
+  end interface pastixBlasSetNumThreads
+
+  interface pastixBlasSetNumThreadsOne
+     subroutine pastixBlasSetNumThreadsOne_f08(info)
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixBlasSetNumThreadsOne_f08
+  end interface pastixBlasSetNumThreadsOne
+
 
   interface pastixOrderGetArray
      subroutine pastixOrderGetArray_f08( order, permtab, peritab, rangtab, treetab, sndetab )

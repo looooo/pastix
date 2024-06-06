@@ -432,3 +432,21 @@ pastixCheckParam_f2c( const pastix_int_t *iparm,
 {
     return pastixCheckParam( iparm, dparm );
 }
+
+int
+pastixBlasGetNumThreads_f2c( void )
+{
+    return pastixBlasGetNumThreads( );
+}
+
+int
+pastixBlasSetNumThreads_f2c( int nt )
+{
+    return pastixBlasSetNumThreads( nt );
+}
+
+int
+pastixBlasSetNumThreadsOne_f2c( void )
+{
+    return pastixBlasSetNumThreadsOne( );
+}
