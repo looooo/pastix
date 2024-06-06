@@ -116,6 +116,7 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
     pastix_int_t   ldx  = Xp->ld;
     const void    *b    = Bp->b;
     void          *x    = Xp->b;
+    int            prevnt;
 
     if (nrhs > 1)
     {
@@ -138,6 +139,8 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
             pastix_data->dparm[DPARM_EPSILON_REFINEMENT] = 1e-12;
         }
     }
+
+    prevnt = pastixBlasSetNumThreadsOne();
 
     clockSyncStart( timer, pastix_data->inter_node_comm );
     {
@@ -166,6 +169,8 @@ pastix_subtask_refine( pastix_data_t *pastix_data,
         Xp->b = (void*)x;
     }
     clockSyncStop( timer, pastix_data->inter_node_comm );
+
+    pastixBlasSetNumThreads( prevnt );
 
     pastix_data->dparm[DPARM_REFINE_TIME] = clockVal(timer);
     if ( iparm[IPARM_VERBOSE] > PastixVerboseNot ) {
