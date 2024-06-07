@@ -1389,8 +1389,6 @@ core_zrradd_qr( core_zrrqr_cp_t         rrqrfct,
             break;
 
         case PastixCompressOrthoCGS:
-            pastix_attr_fallthrough;
-
         default:
             flops = core_zlrorthu_cgs( M2, N2, M1, N1, B->rk, &rankA, offx, offy,
                                        u1u2, ldu, v1v2, ldv );
