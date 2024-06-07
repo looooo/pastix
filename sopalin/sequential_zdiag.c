@@ -50,10 +50,11 @@ sequential_zdiag( pastix_data_t  *pastix_data,
                   sopalin_data_t *sopalin_data,
                   pastix_rhs_t    rhsb )
 {
-    SolverMatrix      *datacode = sopalin_data->solvmtx;
-    SolverCblk        *cblk;
-    pastix_int_t       i, cblknbr;
-    pastix_solv_mode_t mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
+    SolverMatrix       *datacode = sopalin_data->solvmtx;
+    SolverCblk         *cblk;
+    pastix_complex64_t *b = rhsb->b;
+    pastix_int_t        i, cblknbr;
+    pastix_solv_mode_t  mode = pastix_data->iparm[IPARM_SCHUR_SOLV_MODE];
 
     cblk    = datacode->cblktab;
     cblknbr = (mode == PastixSolvModeSchur) ? datacode->cblknbr : datacode->cblkschur;
@@ -62,7 +63,7 @@ sequential_zdiag( pastix_data_t  *pastix_data,
             continue;
         }
         solve_cblk_zdiag( cblk, cblk_getdataL( cblk ),
-                          rhsb->n, rhsb->b + cblk->lcolidx, rhsb->ld, NULL );
+                          rhsb->n, b + cblk->lcolidx, rhsb->ld, NULL );
     }
 }
 
