@@ -12417,7 +12417,7 @@ lapack_int LAPACKE_zhegv_2stage_work( int matrix_layout, lapack_int itype, char 
 
 /* APIs for set/get nancheck flags */
 void LAPACKE_set_nancheck( int flag );
-int LAPACKE_get_nancheck( );
+int LAPACKE_get_nancheck( void );
 
 #ifdef __cplusplus
 }

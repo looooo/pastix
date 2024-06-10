@@ -3,14 +3,14 @@
 !>
 !> PaStiX Fortran to C bindings module
 !>
-!> @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!> @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
 !> @version 6.3.2
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2023-07-21
+!> @date 2024-06-06
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -408,6 +408,16 @@ module pastixf_bindings
        type(pastix_rhs_t), value :: b
      end function pastix_subtask_solve_adv_f2c
 
+     subroutine pastixIsolateUnknowns_f2c(pastix_data, n, list) &
+          bind(c, name='pastixIsolateUnknowns_f2c')
+       use :: iso_c_binding, only : c_ptr
+       use :: pastixf_enums, only : pastix_int_t
+       implicit none
+       type(c_ptr),                value :: pastix_data
+       integer(kind=pastix_int_t), value :: n
+       type(c_ptr),                value :: list
+     end subroutine pastixIsolateUnknowns_f2c
+
      subroutine pastixSetSchurUnknownList_f2c(pastix_data, n, list) &
           bind(c, name='pastixSetSchurUnknownList_f2c')
        use :: iso_c_binding, only : c_ptr
@@ -543,5 +553,27 @@ module pastixf_bindings
        type(c_ptr),  value :: iparm
        type(c_ptr),  value :: dparm
      end function pastixCheckParam_f2c
+
+     function pastixBlasGetNumThreads_f2c() &
+          bind(c, name='pastixBlasGetNumThreads_f2c')
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int) :: pastixBlasGetNumThreads_f2c
+     end function pastixBlasGetNumThreads_f2c
+
+     function pastixBlasSetNumThreads_f2c(nt) &
+          bind(c, name='pastixBlasSetNumThreads_f2c')
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int)        :: pastixBlasSetNumThreads_f2c
+       integer(kind=c_int), value :: nt
+     end function pastixBlasSetNumThreads_f2c
+
+     function pastixBlasSetNumThreadsOne_f2c() &
+          bind(c, name='pastixBlasSetNumThreadsOne_f2c')
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int) :: pastixBlasSetNumThreadsOne_f2c
+     end function pastixBlasSetNumThreadsOne_f2c
   end interface
 end module pastixf_bindings

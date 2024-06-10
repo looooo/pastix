@@ -1114,7 +1114,7 @@ pastixCheckParam( const pastix_int_t *iparm,
  *
  *******************************************************************************/
 int
-pastixBlasGetNumThreads(void)
+pastixBlasGetNumThreads( void )
 {
 #if defined(HAVE_BLI_THREAD_SET_NUM_THREADS)
     return bli_thread_get_num_threads();
@@ -1154,6 +1154,7 @@ pastixBlasSetNumThreads( int nt )
 #elif defined(HAVE_OPENBLAS_SET_NUM_THREADS)
     openblas_set_num_threads( nt );
 #endif
+    (void)nt;
     return prevnt;
 }
 
@@ -1175,7 +1176,7 @@ pastixBlasSetNumThreads( int nt )
  *
  *******************************************************************************/
 int
-pastixBlasSetNumThreadsOne(void)
+pastixBlasSetNumThreadsOne( void )
 {
     return pastixBlasSetNumThreads( 1 );
 }

@@ -47,7 +47,7 @@ derived_types = [ 'spmatrix_t', 'spm_int_t', 'pastix_int_t', 'pastix_data_t', 'p
 arrays_names_2D = ["pA", "pB", "pC", "pAB", "pQ", "pX", "pAs", "A", "B", "C", "Bl", "Bg", "X", "X0", "S" ]
 arrays_names_1D = ["colptr", "rowptr", "loc2glob", "dofs", "row", "values",
                    "iparm", "dparm", "bindtab", "perm", "invp", "schur_list",
-                   "rang", "tree", "x0", "x", "y", "b" ]
+                   "rang", "tree", "x0", "x", "y", "b", "list" ]
 
 def polish_file(whole_file):
     """Preprocessing and cleaning of the header file.
@@ -190,10 +190,16 @@ def parse_arg( string ):
     # Split name from type
     m = re.search(r"^(.*[\s\*])([^\*\s]+)$", string )
     if m == None:
-        print("Error: Cannot detect type for ", string)
-
-    namestr = m.group(2).strip()
-    typestr = m.group(1).strip()
+        if re.search(r"^\s*void\s*$", string ):
+            return None
+            namestr = ""
+            typestr = "void"
+        else:
+            print("Error: Cannot detect type for ", string)
+            return None
+    else:
+        namestr = m.group(2).strip()
+        typestr = m.group(1).strip()
 
     arg = { 'name'    : namestr,
             'const'   : False,
@@ -406,7 +412,9 @@ def parse_prototypes( preprocessed_list ):
             arg = arg.strip();
             if arg == "":
                 continue
-            args_list.append( parse_arg( arg ) )
+            cleanarg = parse_arg( arg )
+            if cleanarg != None:
+                args_list.append( cleanarg )
 
         function['args'] = args_list
 

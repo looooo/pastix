@@ -76,7 +76,7 @@ extern int isched_hwloc_fini(void);
 /**
  * Find the number of core of the architecture.
  */
-extern int isched_hwloc_nb_real_cores();
+extern int isched_hwloc_nb_real_cores( void );
 
 /**
  * Bind the current thread on the core of index cpu_index.
@@ -86,7 +86,7 @@ int isched_hwloc_bind_on_core_index(int cpu_index);
 /**
  * Unbind the current thread.
  */
-int isched_hwloc_unbind();
+int isched_hwloc_unbind( void );
 
 /**
  * Return the logical socket index for a core index (hwloc numbering).
@@ -101,7 +101,7 @@ int isched_hwloc_numa_id(int core_id);
 /**
  * Return the depth of the first core hardware ancestor: NUMA node or socket.
  */
-int isched_hwloc_core_first_hrwd_ancestor_depth();
+int isched_hwloc_core_first_hrwd_ancestor_depth( void );
 
 /**
  * Return the number of hwloc objects at the "level" depth.
@@ -116,7 +116,7 @@ int isched_hwloc_get_nb_objects(int level);
 /**
  * Return the number of thread on the machine.
  */
-unsigned int isched_world_size();
+unsigned int isched_world_size( void );
 
 /**
  * Allow serial thread binding per core to use the SMT/HT capabilities of the

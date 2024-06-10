@@ -20,9 +20,9 @@
 #if defined(PASTIX_WITH_PAPI)
 
 int    papiEnergyInit( pastix_int_t nbr_socks );
-void   papiEnergyStart();
-double papiEnergyStop();
-void   papiEnergyFinalize();
+void   papiEnergyStart( void );
+double papiEnergyStop( void );
+void   papiEnergyFinalize( void );
 
 #else
 
@@ -32,9 +32,9 @@ static inline int    papiEnergyInit( pastix_int_t nbr_socks )
     (void)nbr_socks;
     return 0;
 }
-static inline void   papiEnergyStart() {}
-static inline double papiEnergyStop() { return 0.; }
-static inline void   papiEnergyFinalize() {}
+static inline void   papiEnergyStart( void ) {}
+static inline double papiEnergyStop( void ) { return 0.; }
+static inline void   papiEnergyFinalize( void ) {}
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif

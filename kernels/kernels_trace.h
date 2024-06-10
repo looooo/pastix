@@ -63,8 +63,8 @@ extern int32_t               model_size;        /**< Size of the model_entries a
 void kernelsTraceInit( const pastix_data_t *pastix_data,
                        pastix_trace_t       trace );
 void kernelsTraceFinalize( const pastix_data_t *pastix_data );
-void kernelsTraceStop();
-void kernelsTraceStart();
+void kernelsTraceStop( void );
+void kernelsTraceStart( void );
 
 /**
  *******************************************************************************

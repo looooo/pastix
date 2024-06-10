@@ -327,6 +327,8 @@ def print_function_parameters_c( shift, function ):
         string += format( fmt % (argconst, argtype, argpointer, arg['name']) )
         j += 1
         s = shift
+    if len(function['args']) == 0:
+        string += "void"
 
     string += " )\n"
     return string
@@ -459,6 +461,9 @@ def print_function_variable_list( s, function, interface ):
 
     string = ""
     for arg in function['args']:
+        if arg['name'] == '':
+            # void function
+            return string
         if arg['type'] == "FILE":
             continue
         ftype = arg['f_type']
@@ -497,13 +502,19 @@ def print_auxiliary_variables( s, function ):
             return 0
         return len(larg['name'])
 
-    maxlenn = max( map(lambda x: auxname_len( x ), function['args']) )
-    maxlent = max( map(lambda x: auxtype_len( x ), function['args']) )
+    maxlenn = 0
+    maxlent = 0
+
+    if len( function['args'] ) > 0:
+        maxlenn = max( map(lambda x: auxname_len( x ), function['args']) )
+        maxlent = max( map(lambda x: auxtype_len( x ), function['args']) )
+
     if function['is_function'] and function['rettype']['has_aux']:
         maxlent = max( maxlent, len(function['rettype']['f_type'])-2 )
-    fmt = s*" " + "%-" + str(maxlent) + "s :: %s"
 
+    fmt = s*" " + "%-" + str(maxlent) + "s :: %s"
     string = ""
+
     for arg in function['args']:
         if not arg['has_aux']:
             continue
@@ -541,6 +552,8 @@ def print_auxiliary_init( s, function ):
             return 0
         return len(larg['name'])+2
 
+    if len( function['args'] ) == 0:
+        return ""
     maxlen = max( map(lambda x:  auxinit_len( x ), function['args']) )
     fmt = "%-" + str(maxlen) + "s = "
 

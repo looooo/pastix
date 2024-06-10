@@ -82,7 +82,7 @@ modelsGetCost3Param( const double *coefs, pastix_int_t M, pastix_int_t N, pastix
     return (time < 0.) ? 0. : time;
 }
 
-pastix_model_t *pastixModelsNew();
+pastix_model_t *pastixModelsNew( void );
 void pastixModelsFree( pastix_model_t *model );
 void pastixModelsLoad( pastix_data_t *pastix_data );
 

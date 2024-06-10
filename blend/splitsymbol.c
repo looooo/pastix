@@ -40,17 +40,17 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 static inline
-int pastix_blend_with_constant_split() {
+int pastix_blend_with_constant_split( void ) {
     return pastix_env_is_set_to("PASTIX_BLEND_SPLIT", "CONSTANT");
 }
 
 static inline
-int pastix_blend_with_smallest_upper_split() {
+int pastix_blend_with_smallest_upper_split( void ) {
     return pastix_env_is_set_to("PASTIX_BLEND_SPLIT", "UPPER");
 }
 
 static inline
-int pastix_blend_split_percent() {
+int pastix_blend_split_percent( void ) {
     return
       pastix_getenv_get_value_int( "PASTIX_BLEND_SPLIT_AUTORIZED_PERCENTAGE",
                                     10);

@@ -3,14 +3,14 @@
 !>
 !> PaStiX Fortran 90 wrapper
 !>
-!> @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!> @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
 !> @version 6.3.2
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2023-07-21
+!> @date 2024-06-06
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -453,13 +453,23 @@ module pastixf_interfaces
      end subroutine pastix_subtask_solve_adv_f08
   end interface pastix_subtask_solve_adv
 
+  interface pastixIsolateUnknowns
+     subroutine pastixIsolateUnknowns_f08(pastix_data, n, list)
+       use :: pastixf_enums, only : pastix_data_t, pastix_int_t
+       implicit none
+       type(pastix_data_t),        intent(inout), target :: pastix_data
+       integer(kind=pastix_int_t), intent(in)            :: n
+       integer(kind=pastix_int_t), intent(in),    target :: list(:)
+     end subroutine pastixIsolateUnknowns_f08
+  end interface pastixIsolateUnknowns
+
   interface pastixSetSchurUnknownList
      subroutine pastixSetSchurUnknownList_f08(pastix_data, n, list)
        use :: pastixf_enums, only : pastix_data_t, pastix_int_t
        implicit none
        type(pastix_data_t),        intent(inout), target :: pastix_data
        integer(kind=pastix_int_t), intent(in)            :: n
-       integer(kind=pastix_int_t), intent(in),    target :: list
+       integer(kind=pastix_int_t), intent(in),    target :: list(:)
      end subroutine pastixSetSchurUnknownList_f08
   end interface pastixSetSchurUnknownList
 
@@ -608,6 +618,31 @@ module pastixf_interfaces
        integer(kind=c_int),        intent(out), optional :: info
      end subroutine pastixCheckParam_f08
   end interface pastixCheckParam
+
+  interface pastixBlasGetNumThreads
+     subroutine pastixBlasGetNumThreads_f08(info)
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixBlasGetNumThreads_f08
+  end interface pastixBlasGetNumThreads
+
+  interface pastixBlasSetNumThreads
+     subroutine pastixBlasSetNumThreads_f08(nt, info)
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int), intent(in)            :: nt
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixBlasSetNumThreads_f08
+  end interface pastixBlasSetNumThreads
+
+  interface pastixBlasSetNumThreadsOne
+     subroutine pastixBlasSetNumThreadsOne_f08(info)
+       use :: iso_c_binding, only : c_int
+       implicit none
+       integer(kind=c_int), intent(out), optional :: info
+     end subroutine pastixBlasSetNumThreadsOne_f08
+  end interface pastixBlasSetNumThreadsOne
 
 
   interface pastixOrderGetArray

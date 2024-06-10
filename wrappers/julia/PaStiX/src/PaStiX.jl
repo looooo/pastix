@@ -4,14 +4,14 @@
 
  PaStiX julia wrapper
 
- @copyright 2020-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2020-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.3.2
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2023-07-21
+ @date 2024-06-06
 
  This file has been automatically generated with gen_wrappers.py
 
@@ -171,6 +171,10 @@ end
 end
 
 @cbindings libpastix begin
+    @cextern pastixIsolateUnknowns( pastix_data::Ptr{Pastix_data_t}, n::Pastix_int_t, list::Ptr{Pastix_int_t} )::Cvoid
+end
+
+@cbindings libpastix begin
     @cextern pastixSetSchurUnknownList( pastix_data::Ptr{Pastix_data_t}, n::Pastix_int_t, list::Ptr{Pastix_int_t} )::Cvoid
 end
 
@@ -220,6 +224,18 @@ end
 
 @cbindings libpastix begin
     @cextern pastixCheckParam( iparm::Ptr{Pastix_int_t}, dparm::Ptr{Cdouble} )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixBlasGetNumThreads(  )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixBlasSetNumThreads( nt::Cint )::Cint
+end
+
+@cbindings libpastix begin
+    @cextern pastixBlasSetNumThreadsOne(  )::Cint
 end
 
 end #module

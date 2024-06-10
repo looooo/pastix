@@ -3,13 +3,13 @@
  *
  * PaStiX Fortran to C bindings module
  *
- * @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.3.2
  * @author Mathieu Faverge
  * @author Tony Delarue
- * @date 2023-07-21
+ * @date 2024-06-06
  *
  * This file has been automatically generated with gen_wrappers.py
  *
@@ -321,6 +321,14 @@ pastix_subtask_solve_adv_f2c( pastix_data_t *pastix_data,
 }
 
 void
+pastixIsolateUnknowns_f2c( pastix_data_t      *pastix_data,
+                           pastix_int_t        n,
+                           const pastix_int_t *list )
+{
+    pastixIsolateUnknowns( pastix_data, n, list );
+}
+
+void
 pastixSetSchurUnknownList_f2c( pastix_data_t      *pastix_data,
                                pastix_int_t        n,
                                const pastix_int_t *list )
@@ -423,4 +431,22 @@ pastixCheckParam_f2c( const pastix_int_t *iparm,
                       const double       *dparm )
 {
     return pastixCheckParam( iparm, dparm );
+}
+
+int
+pastixBlasGetNumThreads_f2c( void )
+{
+    return pastixBlasGetNumThreads( );
+}
+
+int
+pastixBlasSetNumThreads_f2c( int nt )
+{
+    return pastixBlasSetNumThreads( nt );
+}
+
+int
+pastixBlasSetNumThreadsOne_f2c( void )
+{
+    return pastixBlasSetNumThreadsOne( );
 }

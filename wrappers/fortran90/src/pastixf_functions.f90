@@ -3,14 +3,14 @@
 !>
 !> PaStiX Fortran interface implementation
 !>
-!> @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+!> @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !>                      Univ. Bordeaux. All rights reserved.
 !>
 !> @version 6.3.2
 !> @author Mathieu Faverge
 !> @author Tony Delarue
 !> @author Selmane Lebdaoui
-!> @date 2023-07-21
+!> @date 2024-06-06
 !>
 !> This file has been automatically generated with gen_wrappers.py
 !>
@@ -748,6 +748,19 @@ subroutine pastix_subtask_solve_adv_f08(pastix_data, transA, b, info)
 
 end subroutine pastix_subtask_solve_adv_f08
 
+subroutine pastixIsolateUnknowns_f08(pastix_data, n, list)
+  use :: pastixf_interfaces, only : pastixIsolateUnknowns
+  use :: pastixf_bindings,   only : pastixIsolateUnknowns_f2c
+  use :: iso_c_binding,      only : c_loc
+  use :: pastixf_enums,      only : pastix_data_t, pastix_int_t
+  implicit none
+  type(pastix_data_t),        intent(inout), target :: pastix_data
+  integer(kind=pastix_int_t), intent(in)            :: n
+  integer(kind=pastix_int_t), intent(in),    target :: list(:)
+
+  call pastixIsolateUnknowns_f2c(c_loc(pastix_data), n, c_loc(list))
+end subroutine pastixIsolateUnknowns_f08
+
 subroutine pastixSetSchurUnknownList_f08(pastix_data, n, list)
   use :: pastixf_interfaces, only : pastixSetSchurUnknownList
   use :: pastixf_bindings,   only : pastixSetSchurUnknownList_f2c
@@ -756,7 +769,7 @@ subroutine pastixSetSchurUnknownList_f08(pastix_data, n, list)
   implicit none
   type(pastix_data_t),        intent(inout), target :: pastix_data
   integer(kind=pastix_int_t), intent(in)            :: n
-  integer(kind=pastix_int_t), intent(in),    target :: list
+  integer(kind=pastix_int_t), intent(in),    target :: list(:)
 
   call pastixSetSchurUnknownList_f2c(c_loc(pastix_data), n, c_loc(list))
 end subroutine pastixSetSchurUnknownList_f08
@@ -990,6 +1003,49 @@ subroutine pastixCheckParam_f08(iparm, dparm, info)
   if ( present(info) ) info = x_info
 
 end subroutine pastixCheckParam_f08
+
+subroutine pastixBlasGetNumThreads_f08(info)
+  use :: pastixf_interfaces, only : pastixBlasGetNumThreads
+  use :: pastixf_bindings,   only : pastixBlasGetNumThreads_f2c
+  use :: iso_c_binding,      only : c_int
+  implicit none
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixBlasGetNumThreads_f2c()
+  if ( present(info) ) info = x_info
+
+end subroutine pastixBlasGetNumThreads_f08
+
+subroutine pastixBlasSetNumThreads_f08(nt, info)
+  use :: pastixf_interfaces, only : pastixBlasSetNumThreads
+  use :: pastixf_bindings,   only : pastixBlasSetNumThreads_f2c
+  use :: iso_c_binding,      only : c_int
+  implicit none
+  integer(kind=c_int), intent(in)            :: nt
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixBlasSetNumThreads_f2c(nt)
+  if ( present(info) ) info = x_info
+
+end subroutine pastixBlasSetNumThreads_f08
+
+subroutine pastixBlasSetNumThreadsOne_f08(info)
+  use :: pastixf_interfaces, only : pastixBlasSetNumThreadsOne
+  use :: pastixf_bindings,   only : pastixBlasSetNumThreadsOne_f2c
+  use :: iso_c_binding,      only : c_int
+  implicit none
+  integer(kind=c_int), intent(out), optional :: info
+
+  integer(kind=c_int) :: x_info
+
+  x_info = pastixBlasSetNumThreadsOne_f2c()
+  if ( present(info) ) info = x_info
+
+end subroutine pastixBlasSetNumThreadsOne_f08
 
 subroutine pastixOrderGetArray_f08( order, permtab, peritab, rangtab, treetab, sndetab )
   use :: pastixf_interfaces, only : pastixOrderGetArray

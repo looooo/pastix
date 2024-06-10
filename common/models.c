@@ -487,7 +487,7 @@ modelsInitDefaultGPU( pastix_model_t *model )
  *
  *******************************************************************************/
 pastix_model_t *
-pastixModelsNew()
+pastixModelsNew( void )
 {
     pastix_model_t *model = malloc(sizeof(pastix_model_t));
 
