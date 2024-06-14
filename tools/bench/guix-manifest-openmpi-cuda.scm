@@ -8,7 +8,7 @@
                 "gawk"
                 "grep"
                 "jube"
-                "mkl"
+                "intel-oneapi-mkl"
                 "nss-certs"
                 "openssh"
                 "perl"
