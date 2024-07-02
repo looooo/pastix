@@ -2,12 +2,13 @@
 ###
 #
 #  @file analysis.sh
-#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.2
+#  @version 6.4.0
 #  @author Mathieu Faverge
-#  @date 2023-12-07
+#  @author Florent Pruvost
+#  @date 2024-07-05
 #
 ###
 
@@ -84,5 +85,5 @@ echo "====== sonar-project.properties ============"
 cat sonar-project.properties
 echo "============================================"
 
-# run sonar analysis + publish on sonarqube-dev
+# run sonar analysis + publish on sonarqube
 sonar-scanner -X > sonar.log
