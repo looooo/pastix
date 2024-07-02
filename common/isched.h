@@ -2,17 +2,18 @@
  *
  * @file isched.h
  *
- * @copyright 2008-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2008-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  * @copyright 2010-2014 The University of Tennessee and The University of
  *                      Tennessee Research Foundation. All rights reserved.
  *
  * PaStiX thread binding routines header.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
- * @date 2023-08-25
+ * @author Alycia Lisito
+ * @date 2024-07-05
  *
  **/
 #ifndef _isched_h_
@@ -76,12 +77,12 @@ struct isched_s {
 #define isched_topo_socketsnbr         isched_nohwloc_socketsnbr
 #endif
 
-int  isched_topo_init(void);
-int  isched_topo_destroy(void);
-int  isched_topo_bind_on_core_index(int);
-int  isched_topo_unbind();
-int  isched_topo_world_size();
-int  isched_topo_socketsnbr();
+int  isched_topo_init( void );
+int  isched_topo_destroy( void );
+int  isched_topo_bind_on_core_index( int );
+int  isched_topo_unbind( void );
+int  isched_topo_world_size( void );
+int  isched_topo_socketsnbr( void );
 
 static inline void
 isched_parallel_call( isched_t *isched, void (*func)(isched_thread_t*, void*), void *args )
