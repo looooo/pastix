@@ -3,12 +3,13 @@
 !
 ! Fortran 90 example using a matrix read with the spm driver.
 !
-! @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
-! @version 6.3.2
+! @version 6.4.0
 ! @author Mathieu Faverge
-! @date 2023-07-21
+! @author Alycia Lisito
+! @date 2024-07-05
 !
 program fsimple
   use iso_c_binding
@@ -40,6 +41,9 @@ program fsimple
   !   1- The matrix
   allocate( spm )
   call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:2.", spm, info )
+  if ( info .ne. 0 ) then
+     error stop "spmReadDriver failed"
+  end if
 
   allocate( spm2 )
   call spmCheckAndCorrect( spm, spm2, info )
@@ -62,19 +66,34 @@ program fsimple
   allocate(b( spm%nexp, nrhs))
 
   call spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm%nexp, b, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "spmGenRHS failed"
+  end if
   x = b
 
   ! 2- Analyze the problem
   call pastix_task_analyze( pastix_data, spm, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_analyze failed"
+  end if
 
   ! 3- Factorize the matrix
   call pastix_task_numfact( pastix_data, spm, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_numfact failed"
+  end if
 
   ! 4- Solve the problem
   call pastix_task_solve( pastix_data, spm%nexp, nrhs, x, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_solve failed"
+  end if
 
   ! 5- Refine the solution
   call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_refine failed"
+  end if
 
   ! 6- Destroy the C data structure
   call pastixFinalize( pastix_data )
@@ -83,6 +102,9 @@ program fsimple
   ! Check the solution
   !
   call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0, spm%nexp, b, spm%nexp, x, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "spmCheckAxb failed"
+  end if
 
   call spmExit( spm )
   deallocate(spm)
