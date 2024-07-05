@@ -3,7 +3,7 @@
  *
  * @brief A simple example that reads the matrix and then runs pastix in one call.
  *
- * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.3.2

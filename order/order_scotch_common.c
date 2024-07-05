@@ -4,7 +4,7 @@
  *
  * PaStiX order common routine between order_compute_scotch.c and order_compute_ptscotch.c.
  *
- * @copyright 2004-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2004-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.3.2

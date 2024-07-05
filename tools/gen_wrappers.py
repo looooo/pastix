@@ -7,7 +7,7 @@
 
  @copyright 2016-2017 University of Tennessee, US, University of
                       Manchester, UK. All rights reserved.
- @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
  @version 6.3.2
