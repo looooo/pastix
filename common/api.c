@@ -440,11 +440,12 @@ pastixInitParam( pastix_int_t *iparm,
      * Ordering parameters
      */
     iparm[IPARM_ORDERING]              = -1;
-#if defined(PASTIX_ORDERING_METIS)
-    iparm[IPARM_ORDERING]              = PastixOrderMetis;
-#endif
 #if defined(PASTIX_ORDERING_SCOTCH)
     iparm[IPARM_ORDERING]              = PastixOrderScotch;
+#elif defined(PASTIX_ORDERING_METIS)
+    iparm[IPARM_ORDERING]              = PastixOrderMetis;
+#else
+    iparm[IPARM_ORDERING]              = PastixOrderPersonal;
 #endif
     iparm[IPARM_ORDERING_DEFAULT]      = 1;
 

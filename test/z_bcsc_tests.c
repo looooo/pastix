@@ -66,8 +66,8 @@ z_bcsc_spmv_check( spm_trans_t       trans,
 #endif
 
     /* spm->nexp should always be of the correct size for both replicated and distributed vectors */
-    xd = (pastix_complex64_t*)malloc( spm->nexp  * sizeof(pastix_complex64_t) );
-    yd = (pastix_complex64_t*)malloc( spm->nexp  * sizeof(pastix_complex64_t) );
+    xd = (pastix_complex64_t*)malloc( spm->nexp * sizeof(pastix_complex64_t) );
+    yd = (pastix_complex64_t*)malloc( spm->nexp * sizeof(pastix_complex64_t) );
     yr = (pastix_complex64_t*)malloc( spm->nexp * sizeof(pastix_complex64_t) );
 
     m      = spm->nexp;
@@ -75,15 +75,15 @@ z_bcsc_spmv_check( spm_trans_t       trans,
     sum_m  = 0;
     my_sum = 0;
 
-    if ( ( clustnum > 0 ) && ( spm->loc2glob != NULL ) ) {
+    if ( ( clustnum > 0 ) && ( !spm->replicated ) ) {
         MPI_Recv( &my_sum, 1, PASTIX_MPI_INT, clustnum - 1, PastixTagCountA, spm->comm, MPI_STATUSES_IGNORE );
     }
-    if ( ( clustnum < ( clustnbr - 1 ) ) && ( spm->loc2glob != NULL ) ) {
+    if ( ( clustnum < ( clustnbr - 1 ) ) && ( !spm->replicated ) ) {
         sum_m = my_sum + m;
         MPI_Send( &sum_m, 1, PASTIX_MPI_INT, clustnum + 1, PastixTagCountA, spm->comm );
     }
 
-    if ( spm->loc2glob == NULL ) {
+    if ( spm->replicated ) {
         /* The vectors are replicated */
         core_zplrnt( m, nrhs, xd, ld, spm->gNexp, 0, 0, seedX );
         core_zplrnt( m, nrhs, yd, ld, spm->gNexp, 0, 0, seedY );
@@ -159,7 +159,7 @@ z_bcsc_spmv_check( spm_trans_t       trans,
         }
 
 #if defined(PASTIX_WITH_MPI)
-        if ( spm->loc2glob != NULL ) {
+        if ( !spm->replicated ) {
             MPI_Allreduce( MPI_IN_PLACE, &Rnorm, 1, MPI_DOUBLE,
                         MPI_MAX, pastix_data->inter_node_comm );
         }
@@ -191,7 +191,7 @@ z_bcsc_spmv_check( spm_trans_t       trans,
                    MPI_SUM, pastix_data->inter_node_comm );
 #endif
 
-    if ( spm->loc2glob != NULL ) {
+    if ( !spm->replicated ) {
         free( xr );
     }
     free(xd); free(yr); free(yd);

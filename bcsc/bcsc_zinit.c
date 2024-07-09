@@ -107,7 +107,11 @@ bcsc_zstore_data( const spmatrix_t     *spm,
     pastix_int_t        dofi, dofj, frow, lrow;
     bcsc_exch_comm_t   *data_sendA, *data_sendAt, *data_sendAAt;
     bcsc_data_amount_t *data_cntA, *data_cntAt, *data_cntAAt;
+#if defined(PRECISION_z) || defined(PRECISION_c)
     int                 sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
+#else
+    int                 sym = (spm->mtxtype == SpmSymmetric);
+#endif
 
     /* Allocates the sending indexes and values buffers. */
     bcsc_allocate_buf( bcsc_comm, PastixTagMemSend );

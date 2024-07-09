@@ -262,11 +262,12 @@ kernelsTraceFinalize( const pastix_data_t *pastix_data )
 
     pastix_atomic_lock( &lock_flops );
     nbstart = pastix_atomic_dec_32b( &(kernels_trace_started) );
-    assert( nbstart >= 0 );
     if ( nbstart > 0 ) {
         pastix_atomic_unlock( &lock_flops );
+        assert( nbstart >= 0 );
         return;
     }
+    assert( nbstart == 0 );
 
 #if defined(PASTIX_WITH_EZTRACE)
     /*
