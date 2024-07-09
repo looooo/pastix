@@ -499,7 +499,7 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 # Compile the spm library
 option( PASTIX_WITH_EXTERNAL_SPM "Force the use of an external SpM library that should be correctly set in the environment variables" OFF )
-set( PASTIX_SPM_VERSION "1.0.0" CACHE STRING "Minimal SPM API" )
+set( PASTIX_SPM_VERSION "1.2.4" CACHE STRING "Minimal SPM API" )
 
 if ( PASTIX_WITH_EXTERNAL_SPM )
   find_package( SPM REQUIRED )
