@@ -2,7 +2,7 @@
 ###
 #
 #  @file find_sources.sh
-#  @copyright 2013-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#  @copyright 2013-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
 #  @brief Generate the filelist for the static analysis

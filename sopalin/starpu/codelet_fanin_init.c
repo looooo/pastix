@@ -5,7 +5,7 @@
  * StarPU codelets to initialize a fanin before use. This codelet is not meant
  * to be submitted by the user, but automatically by the runtime at need.
  *
- * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.4.0

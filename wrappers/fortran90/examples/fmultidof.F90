@@ -3,12 +3,13 @@
 !
 ! Fortran 90 example using a matrix read with the spm driver.
 !
-! @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
-! @version 6.3.2
+! @version 6.4.0
 ! @author Mathieu Faverge
-! @date 2023-07-21
+! @author Alycia Lisito
+! @date 2024-07-05
 !
 program fmultidof
   use iso_c_binding
@@ -40,6 +41,9 @@ program fmultidof
   !
   allocate( spm )
   call spmReadDriver( SpmDriverLaplacian, "d:10:10:10:4.:.5:5", spm, info )
+  if ( info .ne. 0 ) then
+     error stop "spmReadDriver failed"
+  end if
 
   !
   ! We do not check the matrix as it would expand the spm matrix, and
@@ -72,17 +76,34 @@ program fmultidof
   !   a- Split the analyze in substeps. The first three steps handle
   !      multi-dof spm, the last one does not yet
   call pastix_subtask_order( pastix_data, spm, order, info );
+  if ( info .ne. 0 ) then
+     error stop "pastix_subtask_order failed"
+  end if
+
   call pastix_subtask_symbfact( pastix_data, info );
+  if ( info .ne. 0 ) then
+     error stop "pastix_subtask_symbfact failed"
+  end if
+
   call pastix_subtask_reordering( pastix_data, info );
+  if ( info .ne. 0 ) then
+     error stop "pastix_subtask_reordering failed"
+  end if
 
   !   b- Expand the matrix and the associated substructure
   call pastixExpand( pastix_data, spm )
 
   !   c- Finish the analyze step
   call pastix_subtask_blend( pastix_data, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_subtask_blend failed"
+  end if
 
   ! 3- Factorize the matrix
   call pastix_task_numfact( pastix_data, spm, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_numfact failed"
+  end if
 
   !
   ! We need to generate the right hand side once the spm has been
@@ -94,13 +115,22 @@ program fmultidof
   allocate(b( spm%nexp, nrhs))
 
   call spmGenRHS( SpmRhsRndX, nrhs, spm, x0, spm%nexp, b, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "spmGenRHS failed"
+  end if
   x = b
 
   ! 4- Solve the problem
   call pastix_task_solve( pastix_data, spm%nexp, nrhs, x, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_solve failed"
+  end if
 
   ! 5- Refine the solution
   call pastix_task_refine( pastix_data, spm%nexp, nrhs, b, spm%nexp, x, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "pastix_task_refine failed"
+  end if
 
   ! 6- Destroy the C data structure
   call pastixFinalize( pastix_data )
@@ -109,6 +139,9 @@ program fmultidof
   ! Check the solution
   !
   call spmCheckAxb( dparm(DPARM_EPSILON_REFINEMENT), nrhs, spm, x0, spm%nexp, b, spm%nexp, x, spm%nexp, info )
+  if ( info .ne. 0 ) then
+     error stop "spmCheckAxb failed"
+  end if
 
   call spmExit( spm )
   deallocate(spm)

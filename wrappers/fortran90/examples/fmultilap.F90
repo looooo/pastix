@@ -28,13 +28,14 @@
 ! 10                     Third dimension of each laplacian matrix
 ! ---------------------------------------------------------------
 !
-! @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+! @copyright 2015-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 !                      Univ. Bordeaux. All rights reserved.
 !
-! @version 6.3.2
+! @version 6.4.0
 ! @author Andrea Piacentini
 ! @author Mathieu Faverge
-! @date 2023-07-21
+! @author Alycia Lisito
+! @date 2024-07-05
 !
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -290,11 +291,17 @@ program fmultilap
 
            ! 2- Analyze the problem
            call pastix_task_analyze( matrix%pastix_data, matrix%spm, info )
+           if ( info .ne. 0 ) then
+              error stop "pastix_task_analyze failed"
+           end if
            dla_thread_stats(th,MULTILAP_ANALYZE_TIME) = &
                 & dla_thread_stats(th,MULTILAP_ANALYZE_TIME) + matrix%dparm(DPARM_ANALYZE_TIME)
 
            ! 3- Factorize the matrix
            call pastix_task_numfact( matrix%pastix_data, matrix%spm, info )
+           if ( info .ne. 0 ) then
+              error stop "pastix_task_numfact failed"
+           end if
 
            dla_thread_stats(th,MULTILAP_FACT_TIME) = &
                 & dla_thread_stats(th,MULTILAP_FACT_TIME) + matrix%dparm(DPARM_FACT_TIME)
@@ -397,6 +404,9 @@ program fmultilap
               if (i==1) then
                  call spmGenRHS( SpmRhsRndX, rhs%nrhs, matrix%spm, &
                       & B=rhs%b, ldb=params%n, info=info )
+                 if ( info .ne. 0 ) then
+                    error stop "spmGenRHS failed"
+                 end if
 
                  if ( params%output ) then
                     ! Backup initial b that will be overwritten by check
@@ -417,29 +427,61 @@ program fmultilap
               ! 3- Permute the b pointer
               rhs%x(:,:) = rhs%b(:,:)
               call pastixRhsInit( rhs%bp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastixRhsInit bp failed"
+              end if
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirForward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastix_subtask_applyorder bp failed"
+              end if
               call pastixRhsInit( rhs%xp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastixRhsInit xp failed"
+              end if
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirForward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastix_subtask_applyorder rp failed"
+              end if
 
               ! 4- Solve the problem
               call pastix_subtask_solve( matrix%pastix_data, rhs%xp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastix_subtask_solve failed"
+              end if
 
               dla_thread_stats(th, MULTILAP_SOLV_TIME) =  &
                    & dla_thread_stats(th,MULTILAP_SOLV_TIME) + matrix%dparm(DPARM_SOLV_TIME)
 
               ! 5- Refine the solution
               call pastix_subtask_refine( matrix%pastix_data, rhs%bp, rhs%xp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastix_subtask_refine failed"
+              end if
 
               ! 6- Apply the backward permutation on b and x
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirBackward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%b, matrix%spm%nexp, rhs%bp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastix_subtask_applyorder b failed"
+              end if
+
               call pastixRhsFinalize( rhs%bp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastixRhsFinalize b failed"
+              end if
 
               call pastix_subtask_applyorder( matrix%pastix_data, PastixDirBackward, &
                    &                          matrix%spm%nexp, rhs%nrhs, rhs%x, matrix%spm%nexp, rhs%xp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastix_subtask_applyorder x failed"
+              end if
+
               call pastixRhsfinalize( rhs%xp, info )
+              if ( info .ne. 0 ) then
+                 error stop "pastixRhsFinalize x failed"
+              end if
 
            end do solve_loop2
         end do solve_loop
@@ -484,6 +526,9 @@ program fmultilap
                       & matrix%spm,    &
                       & B=rhs%b, ldb=matrix%spm%nexp, &
                       & X=rhs%x, ldx=matrix%spm%nexp, info=info )
+                 if ( info .ne. 0 ) then
+                    error stop "spmCheckAxb failed"
+                 end if
 
                  ginfo = ginfo + info
               end do

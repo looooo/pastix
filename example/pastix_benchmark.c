@@ -4,7 +4,7 @@
  * @brief This file is not a conventional example. It's a file that allows us to
  *        benchmark our implementation thanks to 3 successives factorizations/solves.
  *
- * @copyright 2015-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2015-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.3.2

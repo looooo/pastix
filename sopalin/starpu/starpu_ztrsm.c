@@ -4,7 +4,7 @@
  *
  * PaStiX ztrsm StarPU wrapper.
  *
- * @copyright 2016-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2016-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.4.0
@@ -278,6 +278,7 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
         for ( i = cblknbr-1; i >= 0; i--, cblk-- ) {
             prio = i;
 
+#if defined(PASTIX_WITH_MPI)
             /* If this is a recv, let's locally copy and send the accumulation */
             if ( cblk->cblktype & CBLK_RECV ) {
                 fcblk = datacode->cblktab + cblk->fblokptr->fcblknm;
@@ -294,7 +295,7 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
                                          rhsb->starpu_desc->handletab[i],
                                          datacode->clustnum );
             }
-
+#endif
             starpu_cblk_ztrsmsp_backward( enums, sopalin_data, rhsb, cblk, prio );
         }
     }
@@ -306,6 +307,7 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
         for ( i = 0; i < cblknbr; i++, cblk++ ) {
             prio = cblknbr - i;
 
+#if defined(PASTIX_WITH_MPI)
             /* If this is a fanin, let's submit the send */
             if ( cblk->cblktype & CBLK_FANIN ) {
                 starpu_mpi_data_migrate( datacode->solv_comm,
@@ -323,6 +325,7 @@ starpu_ztrsm_sp1dplus( pastix_data_t      *pastix_data,
                 starpu_stask_blok_zadd_fwd_recv( sopalin_data, rhsb, cblk, fcblk, prio );
                 continue;
             }
+#endif
             starpu_cblk_ztrsmsp_forward( enums, sopalin_data, rhsb, cblk, prio );
         }
     }

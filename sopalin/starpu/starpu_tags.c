@@ -2,7 +2,7 @@
  *
  * @file starpu_tags.c
  *
- * @copyright 2017-2023 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ * @copyright 2017-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
  * @version 6.3.2
