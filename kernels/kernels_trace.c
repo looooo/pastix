@@ -7,11 +7,11 @@
  *
  * PaStiX trace and modelling routines
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Gregoire Pichon
  * @author Mathieu Faverge
  * @author Alycia Lisito
- * @date 2023-11-10
+ * @date 2024-07-09
  *
  **/
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

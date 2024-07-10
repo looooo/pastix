@@ -7,11 +7,11 @@
  @copyright 2020-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.2
+ @version 6.4.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2024-06-06
+ @date 2024-06-08
 
  This file has been automatically generated with gen_wrappers.py
 

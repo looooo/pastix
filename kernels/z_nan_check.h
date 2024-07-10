@@ -8,10 +8,10 @@
  * This header describes all the LAPACKE functions used for low-rank kernels,
  * as well as some macros to manage nancheck.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Gregoire Pichon
- * @date 2023-07-21
+ * @date 2024-07-05
  * @precisions normal z -> s d c
  *
  */

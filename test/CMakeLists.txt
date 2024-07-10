@@ -3,7 +3,7 @@
 #  @copyright 2013-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.2
+#  @version 6.4.0
 #  @author Mathieu Faverge
 #  @author Esragul Korkmaz
 #  @author Florent Pruvost
@@ -11,7 +11,7 @@
 #  @author Pierre Ramet
 #  @author Tony Delarue
 #  @author Vincent Bridonneau
-#  @date 2023-11-22
+#  @date 2024-07-05
 #
 ###
 include(RulesPrecisions)

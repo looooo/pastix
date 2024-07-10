@@ -7,13 +7,13 @@
  *
  * PaStiX memory tracking function.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Xavier Lacoste
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon
  * @author Mohamed Aymane Kherraz
- * @date 2023-08-03
+ * @date 2024-07-05
  *
  */
 #ifndef _out_h_

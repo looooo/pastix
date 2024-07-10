@@ -7,11 +7,11 @@
  *
  * file to keep compatibility with older API.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Gregoire Pichon
- * @date 2023-07-21
+ * @date 2024-07-05
  *
  */
 #ifndef _old_api_h_

@@ -62,7 +62,7 @@ sonar.links.issue=$CI_PROJECT_URL/issues
 
 sonar.projectKey=${CI_PROJECT_NAMESPACE}:${CI_PROJECT_NAME}
 sonar.projectDescription=Parallel Sparse direct Solver
-sonar.projectVersion=6.4.0
+sonar.projectVersion=6.4.1
 
 sonar.scm.disabled=false
 sonar.scm.provider=git
