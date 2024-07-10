@@ -1,7 +1,20 @@
 # pastix-6.4.0
- - starpu: Fix distributed starpu
-
-# pastix-6.3.3
+ - starpu/mpi: protect mpi calls in non mpi compilation
+ - wrapper/fortran: Add error stop in case of error to raise numerical errors during CI
+ - fortran/example: Add an example to generate a user distributed matrix
+ - issue: Fix undefined void prototypes
+ - issue: fix shift on non casted pointer
+ - wrappers: push the mt threads api to the wrappers
+ - tools/wrapper: Update the wrapper to consider void functions
+ - example: Add an example that uses the isolation of a set of unknowns
+ - api: Add a pastixIsolateUnknowns function to isolate a set of complicated unknowns to the end of the matrix
+ - wrappers: Fix prototype of SetSchurUnknownsList in the wrappers
+ - starpu: update requirement to 1.4.7
+ - spm: update requirement to 1.2.4
+ - cmake_morse: udpate submodule to integrate update on GenPkgConfig and multi-threaded blas management
+ - brew: fix installation issues with scotch and starpu
+ - solve: Add pastixRhsInit() and pastixRhsFinalize() functions to initialize rhs in distributed mode and correctly apply ordering on them
+ - starpu: Update StarPU to handle distributed solver matrix structure and distributed solves
  - python: Fix installation path
 
 # pastix-6.3.2
