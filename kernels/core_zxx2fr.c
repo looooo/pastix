@@ -107,6 +107,7 @@ core_zfrlr2fr( core_zlrmm_t *params )
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( K, N, B->rk ) + FLOPS_ZGEMM( M, N, K     );
     pastix_fixdbl_t flops;
     int allocated = 0;
+    PASTE_CORE_ZLRMM_VOID;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldbu = (transB == PastixNoTrans) ? K : N;
@@ -174,7 +175,6 @@ core_zfrlr2fr( core_zlrmm_t *params )
     if ( allocated ) {
         free( work );
     }
-    PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
 
@@ -208,6 +208,7 @@ core_zlrfr2fr( core_zlrmm_t *params )
     pastix_fixdbl_t flops2 = FLOPS_ZGEMM( M, K, A->rk ) + FLOPS_ZGEMM( M, N, K     );
     pastix_fixdbl_t flops;
     int allocated = 0;
+    PASTE_CORE_ZLRMM_VOID;
 
     ldau = (transA == PastixNoTrans) ? M : K;
     ldav = ( A->rk == -1 ) ? -1 : A->rkmax;
@@ -276,7 +277,6 @@ core_zlrfr2fr( core_zlrmm_t *params )
     if ( allocated ) {
         free( work );
     }
-    PASTE_CORE_ZLRMM_VOID;
     return flops;
 }
 

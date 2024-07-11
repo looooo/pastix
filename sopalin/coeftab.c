@@ -105,6 +105,7 @@ coeftabAlloc( pastix_data_t *pastix_data )
     char             *workL    = NULL;
     char             *workU    = NULL;
 
+    assert( solvmatr->globalalloc );
     workL = pastix_malloc_pinned( size );
     memset( workL, 0, size );
 

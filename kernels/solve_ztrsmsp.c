@@ -586,9 +586,8 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
 
         if ( fcbk->cblktype & CBLK_RECV ) {
 #if defined( PASTIX_WITH_MPI )
-            if ( datacode->reqtab != NULL ) {
-                cpucblk_zisend_rhs_bwd( datacode, rhsb, fcbk );
-            }
+            assert( datacode->reqtab != NULL );
+            cpucblk_zisend_rhs_bwd( datacode, rhsb, fcbk );
 #endif
             continue;
         }

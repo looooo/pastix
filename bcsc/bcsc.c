@@ -604,11 +604,15 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
             /* Sends the size of data. */
             MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
 
+            if ( n == 0 ) {
+                continue;
+            }
+
             if ( n > nr ) {
                 pastix_int_t *tmp;
                 nr = n;
                 tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
-                if ( tmp != NULL ) {
+                if ( tmp != NULL ) { /* Protection for static analysis */
                     col2cblk_bcast = tmp;
                 }
             }
@@ -636,11 +640,17 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
             assert( colcount == bcsc->n );
 
             /* Sends the col2cblk_bcast. */
-            MPI_Bcast( col2cblk_bcast, n, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+            if ( n > 0 ) {
+                MPI_Bcast( col2cblk_bcast, n, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+            }
         }
         else {
             /* Receives the size of data from c. */
             MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+
+            if ( n == 0 ) {
+                continue;
+            }
 
             if ( n > nr ) {
                 pastix_int_t *tmp;
@@ -649,10 +659,6 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
                 if ( tmp != NULL ) {
                     col2cblk_bcast = tmp;
                 }
-            }
-
-            if ( n == 0 ) {
-                continue;
             }
 
             /* Receives the col2cblk_bcast from c. */

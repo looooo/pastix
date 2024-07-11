@@ -166,6 +166,10 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     pastix_data = *pastix_data_ptr;
+    if ( pastix_data == NULL ) {
+        printf("Pastix old interface: pastixTaskInit step not called before calling following steps\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
     /*
      * Initialize the internal spm structure.

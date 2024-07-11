@@ -249,6 +249,7 @@ core_zlr2null(core_zlrmm_t           *params,
     pastix_fixdbl_t total_flops = 0.;
     pastix_fixdbl_t flops;
     int allocated = 0;
+    PASTE_CORE_ZLRMM_VOID;
 
     assert( C->rk == 0 );
 
@@ -341,7 +342,6 @@ core_zlr2null(core_zlrmm_t           *params,
         }
     }
 
-    PASTE_CORE_ZLRMM_VOID;
     return total_flops;
 }
 

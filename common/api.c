@@ -132,14 +132,14 @@ pastix_gendirectories( pastix_data_t *pastix_data )
         }
 #endif
         /* Broadcast the main directory to everyone */
-        len = strlen( *dir_global );
+        len = strlen( pastix_data->dir_global );
 
         MPI_Bcast( &len, 1, MPI_INT,
                    0, pastix_data->inter_node_comm );
         MPI_Bcast( pastix_data->dir_global, len+1, MPI_CHAR,
                    0, pastix_data->inter_node_comm );
 
-        fprintf( stdout, "OUTPUTDIR: %s\n", *dir_global );
+        fprintf( stdout, "OUTPUTDIR: %s\n", pastix_data->dir_global );
     }
     else {
         len = 0;
@@ -178,7 +178,7 @@ pastix_gendirectories( pastix_data_t *pastix_data )
     else
 #endif
     {
-        pastix_data->dir_local = strdup( *dir_global );
+        pastix_data->dir_local = strdup( pastix_data->dir_global );
     }
     (void)rc;
 }
@@ -439,13 +439,12 @@ pastixInitParam( pastix_int_t *iparm,
     /*
      * Ordering parameters
      */
-    iparm[IPARM_ORDERING]              = -1;
 #if defined(PASTIX_ORDERING_SCOTCH)
     iparm[IPARM_ORDERING]              = PastixOrderScotch;
 #elif defined(PASTIX_ORDERING_METIS)
     iparm[IPARM_ORDERING]              = PastixOrderMetis;
 #else
-    iparm[IPARM_ORDERING]              = PastixOrderPersonal;
+    iparm[IPARM_ORDERING]              = -1;
 #endif
     iparm[IPARM_ORDERING_DEFAULT]      = 1;
 
