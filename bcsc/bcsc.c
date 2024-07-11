@@ -612,9 +612,11 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
                 pastix_int_t *tmp;
                 nr = n;
                 tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
-                if ( tmp != NULL ) { /* Protection for static analysis */
-                    col2cblk_bcast = tmp;
+                 /* Protection for static analysis */
+                if ( pastix_unlikely( tmp == NULL ) ) {
+                    pastix_print_error( "Error reallocating col2cblk_bcast\n" );
                 }
+                col2cblk_bcast = tmp;
             }
 
             colcount = 0;
@@ -624,6 +626,8 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
                 if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
                     continue;
                 }
+                assert( col2cblk_bcast != NULL );
+
                 /* Adds the first and last columns of the block in col2cblk_bcast. */
                 col2cblk_bcast[k]   = cblk->fcolnum;
                 col2cblk_bcast[k+1] = cblk->lcolnum;
@@ -656,9 +660,11 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
                 pastix_int_t *tmp;
                 nr = n;
                 tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
-                if ( tmp != NULL ) {
-                    col2cblk_bcast = tmp;
+                 /* Protection for static analysis */
+                if ( pastix_unlikely( tmp == NULL ) ) {
+                    pastix_print_error( "Error reallocating col2cblk_bcast\n" );
                 }
+                col2cblk_bcast = tmp;
             }
 
             /* Receives the col2cblk_bcast from c. */
