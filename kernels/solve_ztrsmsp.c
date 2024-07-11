@@ -586,8 +586,11 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
 
         if ( fcbk->cblktype & CBLK_RECV ) {
 #if defined( PASTIX_WITH_MPI )
-            assert( datacode->reqtab != NULL );
-            cpucblk_zisend_rhs_bwd( datacode, rhsb, fcbk );
+            /* If PastixSchedSequential, then the communications are done syncrhonously */
+            if( enums->sched != PastixSchedSequential ) {
+                assert( datacode->reqtab != NULL );
+                cpucblk_zisend_rhs_bwd( datacode, rhsb, fcbk );
+            }
 #endif
             continue;
         }

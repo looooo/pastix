@@ -86,6 +86,7 @@ typedef enum solve_step_e {
  */
 typedef struct args_solve_s
 {
+    pastix_scheduler_t  sched;
     solve_step_t        solve_step;
     pastix_solv_mode_t  mode;
     pastix_side_t       side;

@@ -630,6 +630,7 @@ sopalin_ztrsm( pastix_data_t  *pastix_data,
         solverRhsRecvInit( solve_step, sopalin_data->solvmtx, PastixComplex64, rhsb );
     }
 
+    enum_list->sched = sched;
     ztrsm( pastix_data, enum_list, sopalin_data, rhsb );
 
     if ( (sched == PastixSchedStatic)     ||

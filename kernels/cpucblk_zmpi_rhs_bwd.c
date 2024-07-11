@@ -531,6 +531,9 @@ cpucblk_zrelease_rhs_bwd_deps( const args_solve_t *enums,
                                SolverCblk         *fcbk )
 {
     int32_t ctrbcnt;
+    if ( enums->sched == PastixSchedSequential ) {
+        return;
+    }
     ctrbcnt = pastix_atomic_dec_32b( &(fcbk->ctrbcnt) );
     if ( !ctrbcnt ) {
 #if defined(PASTIX_WITH_MPI)
