@@ -10,11 +10,11 @@ Wrapper Julia
  @copyright 2019-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.2
+ @version 6.4.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue
- @date 2023-07-21
+ @date 2024-07-05
 
 """
 import os
@@ -98,7 +98,7 @@ class wrap_julia:
  @copyright 2020-''' + time.strftime( "%Y" ) + ''' Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
                       Univ. Bordeaux. All rights reserved.
 
- @version 6.3.2
+ @version 6.4.0
  @author Mathieu Faverge
  @author Selmane Lebdaoui
  @author Tony Delarue

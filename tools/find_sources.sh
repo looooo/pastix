@@ -12,9 +12,9 @@
 # - exclude base *z* files to avoid duplication
 # - exclude cblas.h and lapacke-.h because not really part of pastix and make cppcheck analysis too long
 #
-#  @version 6.3.2
+#  @version 6.4.0
 #  @author Mathieu Faverge
-#  @date 2023-11-22
+#  @date 2024-07-05
 #
 ###
 if [ $# -gt 0 ]

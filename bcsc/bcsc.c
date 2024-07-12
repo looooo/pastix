@@ -5,14 +5,14 @@
  * @copyright 2004-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Theophile Terraz
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2023-07-21
+ * @date 2024-07-05
  *
  **/
 #include "common.h"
@@ -604,13 +604,19 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
             /* Sends the size of data. */
             MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
 
+            if ( n == 0 ) {
+                continue;
+            }
+
             if ( n > nr ) {
                 pastix_int_t *tmp;
                 nr = n;
                 tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
-                if ( tmp != NULL ) {
-                    col2cblk_bcast = tmp;
+                 /* Protection for static analysis */
+                if ( pastix_unlikely( tmp == NULL ) ) {
+                    pastix_print_error( "Error reallocating col2cblk_bcast\n" );
                 }
+                col2cblk_bcast = tmp;
             }
 
             colcount = 0;
@@ -620,6 +626,8 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
                 if ( cblk->cblktype & (CBLK_FANIN|CBLK_RECV) ) {
                     continue;
                 }
+                assert( col2cblk_bcast != NULL );
+
                 /* Adds the first and last columns of the block in col2cblk_bcast. */
                 col2cblk_bcast[k]   = cblk->fcolnum;
                 col2cblk_bcast[k+1] = cblk->lcolnum;
@@ -636,23 +644,27 @@ bcsc_init_col2cblk_dst( const SolverMatrix  *solvmtx,
             assert( colcount == bcsc->n );
 
             /* Sends the col2cblk_bcast. */
-            MPI_Bcast( col2cblk_bcast, n, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+            if ( n > 0 ) {
+                MPI_Bcast( col2cblk_bcast, n, PASTIX_MPI_INT, c, solvmtx->solv_comm );
+            }
         }
         else {
             /* Receives the size of data from c. */
             MPI_Bcast( &n, 1, PASTIX_MPI_INT, c, solvmtx->solv_comm );
 
+            if ( n == 0 ) {
+                continue;
+            }
+
             if ( n > nr ) {
                 pastix_int_t *tmp;
                 nr = n;
                 tmp = (pastix_int_t *)realloc( col2cblk_bcast, nr * sizeof(pastix_int_t) );
-                if ( tmp != NULL ) {
-                    col2cblk_bcast = tmp;
+                 /* Protection for static analysis */
+                if ( pastix_unlikely( tmp == NULL ) ) {
+                    pastix_print_error( "Error reallocating col2cblk_bcast\n" );
                 }
-            }
-
-            if ( n == 0 ) {
-                continue;
+                col2cblk_bcast = tmp;
             }
 
             /* Receives the col2cblk_bcast from c. */

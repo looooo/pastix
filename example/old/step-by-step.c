@@ -9,12 +9,12 @@
  * If runs one full analyze (ordering, symbolic factorization, analyze), then
  * it loops over 2 factorizations that are both used for 2 solves each.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Tony Delarue
  * @author Alycia Lisito
- * @date 2023-11-07
+ * @date 2024-07-05
  *
  **/
 #include <pastix.h>

@@ -5,7 +5,7 @@
  * @copyright 2004-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -13,7 +13,7 @@
  * @author Tony Delarue
  * @author Vincent Bridonneau
  * @author Alycia Lisito
- * @date 2023-07-21
+ * @date 2024-07-09
  *
  * @precisions normal z -> c d s
  *
@@ -107,7 +107,11 @@ bcsc_zstore_data( const spmatrix_t     *spm,
     pastix_int_t        dofi, dofj, frow, lrow;
     bcsc_exch_comm_t   *data_sendA, *data_sendAt, *data_sendAAt;
     bcsc_data_amount_t *data_cntA, *data_cntAt, *data_cntAAt;
+#if defined(PRECISION_z) || defined(PRECISION_c)
     int                 sym = (spm->mtxtype == SpmSymmetric) || (spm->mtxtype == SpmHermitian);
+#else
+    int                 sym = (spm->mtxtype == SpmSymmetric);
+#endif
 
     /* Allocates the sending indexes and values buffers. */
     bcsc_allocate_buf( bcsc_comm, PastixTagMemSend );

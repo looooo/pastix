@@ -87,9 +87,9 @@ int  isched_topo_socketsnbr( void );
 static inline void
 isched_parallel_call( isched_t *isched, void (*func)(isched_thread_t*, void*), void *args )
 {
+    isched->pfunc = func;
+    isched->pargs = args;
     pthread_mutex_lock(&isched->statuslock);
-    isched->pfunc  = func;
-    isched->pargs  = args;
     isched->status = ISCHED_ACT_PARALLEL;
     pthread_mutex_unlock(&isched->statuslock);
     pthread_cond_broadcast(&isched->statuscond);

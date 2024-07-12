@@ -13,7 +13,7 @@
 #  @author Florent Pruvost
 #  @author Nolan Bredel
 #  @author Tom Moenne-Loccoz
-#  @date 2023-12-18
+#  @date 2024-07-05
 #
 ###
 include(RulesPrecisions)

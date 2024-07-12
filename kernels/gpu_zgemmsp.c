@@ -7,12 +7,12 @@
  *
  * PaStiX GPU kernel routines
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
- * @date 2023-07-21
+ * @date 2024-07-05
  * @precisions normal z -> c d s
  *
  **/

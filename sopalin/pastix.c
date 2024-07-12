@@ -7,13 +7,13 @@
  * @copyright 2011-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
  * @author Gregoire Pichon
  * @author Matias Hastaran
- * @date 2023-07-21
+ * @date 2024-07-05
  *
  **/
 #include "common.h"
@@ -166,6 +166,10 @@ pastix( pastix_data_t **pastix_data_ptr,
     }
 
     pastix_data = *pastix_data_ptr;
+    if ( pastix_data == NULL ) {
+        printf("Pastix old interface: pastixTaskInit step not called before calling following steps\n");
+        return PASTIX_ERR_BADPARAMETER;
+    }
 
     /*
      * Initialize the internal spm structure.

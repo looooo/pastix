@@ -7,7 +7,7 @@
  * @copyright 2012-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
  *                      Univ. Bordeaux. All rights reserved.
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Pierre Ramet
  * @author Xavier Lacoste
@@ -15,7 +15,7 @@
  * @author Vincent Bridonneau
  * @author Alycia Lisito
  * @author Nolan Bredel
- * @date 2023-11-10
+ * @date 2024-07-05
  * @precisions normal z -> c d s
  *
  **/
@@ -586,7 +586,9 @@ solve_cblk_ztrsmsp_backward( const args_solve_t *enums,
 
         if ( fcbk->cblktype & CBLK_RECV ) {
 #if defined( PASTIX_WITH_MPI )
-            if ( datacode->reqtab != NULL ) {
+            /* If PastixSchedSequential, then the communications are done syncrhonously */
+            if( enums->sched != PastixSchedSequential ) {
+                assert( datacode->reqtab != NULL );
                 cpucblk_zisend_rhs_bwd( datacode, rhsb, fcbk );
             }
 #endif

@@ -3,7 +3,7 @@
 #  @copyright 2013-2024 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
 #                       Univ. Bordeaux. All rights reserved.
 #
-#  @version 6.3.2
+#  @version 6.4.0
 #  @author Mathieu Faverge
 #  @author Gregoire Pichon
 #  @author Matias Hastaran
@@ -18,7 +18,7 @@
 #  @author Brieuc Nicolas
 #  @author Florent Pruvost
 #  @author Mohamed Aymane Kherraz
-#  @date 2023-12-07
+#  @date 2024-07-09
 #
 ###
 cmake_minimum_required (VERSION 3.5)
@@ -45,8 +45,8 @@ include(CheckFunctionExists)
 
 # The current version number
 set( PASTIX_VERSION_MAJOR 6 )
-set( PASTIX_VERSION_MINOR 3 )
-set( PASTIX_VERSION_MICRO 2 )
+set( PASTIX_VERSION_MINOR 4 )
+set( PASTIX_VERSION_MICRO 0 )
 
 set( PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}" )
 
@@ -499,7 +499,7 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 # Compile the spm library
 option( PASTIX_WITH_EXTERNAL_SPM "Force the use of an external SpM library that should be correctly set in the environment variables" OFF )
-set( PASTIX_SPM_VERSION "1.0.0" CACHE STRING "Minimal SPM API" )
+set( PASTIX_SPM_VERSION "1.2.4" CACHE STRING "Minimal SPM API" )
 
 if ( PASTIX_WITH_EXTERNAL_SPM )
   find_package( SPM REQUIRED )

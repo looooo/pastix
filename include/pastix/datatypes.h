@@ -7,12 +7,12 @@
  *
  * Definitions of the datatypes used in PaStiX
  *
- * @version 6.3.2
+ * @version 6.4.0
  * @author Mathieu Faverge
  * @author Xavier Lacoste
  * @author Pierre Ramet
  * @author Tony Delarue
- * @date 2023-07-21
+ * @date 2024-07-05
  *
  */
 #ifndef _pastix_datatypes_h_
